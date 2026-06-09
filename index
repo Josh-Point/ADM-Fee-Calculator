@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADM Management Fee Calculator</title>
+    <style>
+        :root {
+            --primary: #1a3a5c;
+            --primary-light: #2c5f8a;
+            --accent: #0078d4;
+            --accent-light: #4da3e8;
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #1e1e1e;
+            --text-muted: #6b7280;
+            --border: #e0e4e8;
+            --red: #dc2626;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 28px 32px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+        .header h1 { font-size: 26px; font-weight: 700; letter-spacing: 0.5px; }
+        .header p { font-size: 13px; opacity: 0.8; margin-top: 6px; font-weight: 400; }
+
+        .container { max-width: 960px; margin: 32px auto; padding: 0 20px; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 28px;
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 14px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.2px; color: var(--accent);
+            margin-bottom: 20px; padding-bottom: 12px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group:last-child { margin-bottom: 0; }
+        .form-group label {
+            display: block; font-size: 13px; font-weight: 600;
+            color: var(--text-muted); margin-bottom: 6px;
+        }
+
+        .input-wrap { position: relative; }
+        .input-wrap .prefix, .input-wrap .suffix {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            font-size: 14px; color: var(--text-muted); font-weight: 600; pointer-events: none;
+        }
+        .input-wrap .prefix { left: 14px; }
+        .input-wrap .suffix { right: 14px; }
+
+        input[type="number"] {
+            width: 100%; padding: 12px 14px; font-size: 16px; font-weight: 600;
+            border: 2px solid var(--border); border-radius: 8px; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            color: var(--text); background: #fafbfc; font-family: inherit;
+        }
+        input[type="number"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.12);
+            background: white;
+        }
+        input.has-prefix { padding-left: 30px; }
+        input.has-suffix { padding-right: 36px; }
+
+        /* Markup highlight */
+        .markup-highlight {
+            margin-bottom: 20px; padding: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 10px; text-align: center; color: white;
+        }
+        .markup-highlight .label {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.2px; opacity: 0.85; margin-bottom: 6px;
+        }
+        .markup-highlight .value { font-size: 36px; font-weight: 800; }
+
+        /* Result rows */
+        .result-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 0; border-bottom: 1px solid var(--border);
+        }
+        .result-row:last-of-type { border-bottom: none; }
+        .result-label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        .result-value { font-size: 18px; font-weight: 700; color: var(--primary); transition: color 0.3s; }
+
+        /* Warning */
+        .warning {
+            margin-top: 16px; padding: 12px 16px; background: #fef2f2;
+            border: 1px solid #fecaca; border-radius: 8px; color: var(--red);
+            font-size: 13px; font-weight: 600; display: none; text-align: center;
+        }
+
+        /* Reset button */
+        .btn-reset {
+            display: block; width: 100%; margin-top: 24px; padding: 14px;
+            background: var(--primary); color: white; border: none;
+            border-radius: 8px; font-size: 14px; font-weight: 700;
+            letter-spacing: 0.5px; cursor: pointer;
+            transition: background 0.2s, transform 0.1s; font-family: inherit;
+        }
+        .btn-reset:hover { background: var(--primary-light); }
+        .btn-reset:active { transform: scale(0.98); }
+
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: var(--text-muted); }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ADM Management Fee Calculator</h1>
+        <p>Enter your desired margin to calculate the required ADM markup</p>
+    </div>
+
+    <div class="container">
+        <div class="grid">
+
+            <!-- INPUTS CARD -->
+            <div class="card">
+                <div class="card-title">Inputs</div>
+
+                <div class="form-group">
+                    <label>Total Cost (without Fee)</label>
+                    <div class="input-wrap">
+                        <span class="prefix">$</span>
+                        <input type="number" id="totalCost" class="has-prefix" placeholder="e.g. 4012.50" step="any" oninput="calculate()">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Total Qty</label>
+                    <div class="input-wrap">
+                        <input type="number" id="totalQty" value="1" min="1" step="1" oninput="calculate()">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>ADM Fee Percentage</label>
+                    <div class="input-wrap">
+                        <input type="number" id="feePercent" class="has-suffix" value="12" step="any" oninput="calculate()">
+                        <span class="suffix">%</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Desired Margin</label>
+                    <div class="input-wrap">
+                        <input type="number" id="desiredMargin" class="has-suffix" value="40" step="any" oninput="calculate()">
+                        <span class="suffix">%</span>
+                    </div>
+                </div>
+
+                <button class="btn-reset" onclick="resetAll()">Reset Calculator</button>
+            </div>
+
+            <!-- RESULTS CARD -->
+            <div class="card">
+                <div class="card-title">Results</div>
+
+                <div class="markup-highlight">
+                    <div class="label">Required ADM Markup</div>
+                    <div class="value" id="resMarkup">&mdash;</div>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">Total Sell (With Fee)</span>
+                    <span class="result-value" id="resTotalSell">$0.00</span>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">Unit Sell</span>
+                    <span class="result-value" id="resUnitSell">$0.00</span>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">ADM Fee</span>
+                    <span class="result-value" id="resADMFee">$0.00</span>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">Total Cost (with Fee)</span>
+                    <span class="result-value" id="resTotalCostFee">$0.00</span>
+                </div>
+
+                <div class="warning" id="warningBanner">
+                    &#9888; Desired Margin + ADM Fee % must be less than 100%. Please adjust your inputs.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer">ADM Management Fee Calculator</div>
+
+    <script>
+        function formatCurrency(val) {
+            return '$' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function calculate() {
+            var totalCost   = parseFloat(document.getElementById('totalCost').value) || 0;
+            var qty         = parseFloat(document.getElementById('totalQty').value) || 1;
+            var feePct      = (parseFloat(document.getElementById('feePercent').value) || 0) / 100;
+            var marginPct   = (parseFloat(document.getElementById('desiredMargin').value) || 0) / 100;
+
+            var warning     = document.getElementById('warningBanner');
+            var denominator = 1 - feePct - marginPct;
+
+            if (denominator <= 0 || totalCost <= 0) {
+                if (denominator <= 0 && totalCost > 0) {
+                    warning.style.display = 'block';
+                } else {
+                    warning.style.display = 'none';
+                }
+                document.getElementById('resMarkup').textContent       = '—';
+                document.getElementById('resTotalSell').textContent     = '$0.00';
+                document.getElementById('resUnitSell').textContent      = '$0.00';
+                document.getElementById('resADMFee').textContent        = '$0.00';
+                document.getElementById('resTotalCostFee').textContent  = '$0.00';
+                return;
+            }
+
+            warning.style.display = 'none';
+
+            var markup       = 1 / denominator;
+            var totalSell    = totalCost * markup;
+            var unitSell     = totalSell / qty;
+            var admFee       = totalSell * feePct;
+            var totalCostFee = admFee + totalCost;
+
+            document.getElementById('resMarkup').textContent       = markup.toFixed(4) + 'x';
+            document.getElementById('resTotalSell').textContent     = formatCurrency(totalSell);
+            document.getElementById('resUnitSell').textContent      = formatCurrency(unitSell);
+            document.getElementById('resADMFee').textContent        = formatCurrency(admFee);
+            document.getElementById('resTotalCostFee').textContent  = formatCurrency(totalCostFee);
+        }
+
+        function resetAll() {
+            document.getElementById('totalCost').value      = '';
+            document.getElementById('totalQty').value       = '1';
+            document.getElementById('feePercent').value     = '12';
+            document.getElementById('desiredMargin').value  = '40';
+
+            document.getElementById('resMarkup').textContent       = '—';
+            document.getElementById('resTotalSell').textContent     = '$0.00';
+            document.getElementById('resUnitSell').textContent      = '$0.00';
+            document.getElementById('resADMFee').textContent        = '$0.00';
+            document.getElementById('resTotalCostFee').textContent  = '$0.00';
+            document.getElementById('warningBanner').style.display  = 'none';
+        }
+
+        calculate();
+    </script>
+
+</body>
+</html>
